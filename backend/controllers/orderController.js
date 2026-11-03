@@ -71,7 +71,7 @@ exports.createOrder = async (req, res) => {
 
     // Appel au micro-service de notification
     try {
-      const notificationResponse = await fetch('http://localhost:8000/notify', {
+      const notificationResponse = await fetch(`${process.env.GATEWAY_URL}/notify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
