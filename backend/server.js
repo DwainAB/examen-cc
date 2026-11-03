@@ -1,13 +1,17 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet')
 require('dotenv').config();
 const connectDB = require('./config/db');
 
 const app = express();
 connectDB();
 
-app.use(cors());
+app.use(helmet())
+app.use(cors({
+    origin: (process.env.CORS_ORIGIN || 'http://localhost:3000').split(','),
+}));
 app.use(express.json());
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
