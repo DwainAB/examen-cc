@@ -19,7 +19,14 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    res.json({ token, role: user.role, username: user.username });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.json({ role: user.role, username: user.username });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
@@ -60,4 +67,13 @@ exports.register = async (req, res) => {
     console.error('Erreur lors de l\'inscription', error);
     res.status(500).json({ message: 'Une erreur est survenue.' });
   }
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+  res.json({ message: 'Déconnexion réussie' });
 };

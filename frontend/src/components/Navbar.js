@@ -2,23 +2,28 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { apiFetch } from '../services/api';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { cart } = useCart();
 
   // Simuler l'état d'authentification avec le localStorage
-  const isAuthenticated = !!localStorage.getItem('token');
+  const isAuthenticated = !!localStorage.getItem('username');
   const username = localStorage.getItem('username'); // Récupère le nom d'utilisateur si connecté
   const isAdmin = localStorage.getItem('role') === 'admin'; // Vérifie si l'utilisateur est admin
 
-  const handleLogout = () => {
-    // Supprimer les informations d'authentification
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    try {
+      await apiFetch('/auth/logout', { method: 'POST' });
+    } catch (error) {
+      console.error(error);
+    }
     localStorage.removeItem('username');
     localStorage.removeItem('role');
     navigate('/login');
   };
+
 
   return (
     <nav className="bg-blue-500 text-white p-4 flex justify-between items-center">
