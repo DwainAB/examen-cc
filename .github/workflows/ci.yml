@@ -43,6 +43,23 @@ jobs:
         env:
           CI: true
 
+  audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - backend
+          - frontend
+          - gateway
+          - microservices/notifications
+          - microservices/stock-management
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm audit --omit=dev --audit-level=high
+        working-directory: ${{ matrix.service }}
+
   docker:
     runs-on: ubuntu-latest
     strategy:
