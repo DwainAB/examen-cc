@@ -13,6 +13,9 @@ app.use(bodyParser.json());
 // Configuration de Nodemailer
 const transporter = nodemailer.createTransport({
   service: 'gmail',
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
   auth: {
     user: process.env.EMAIL_USER, // Adresse Gmail
     pass: process.env.EMAIL_APPLICATION_PASSWORD, // Mot de passe spécifique à l'application
