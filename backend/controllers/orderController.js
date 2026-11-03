@@ -2,6 +2,32 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product')
 
+const sendOrderNotification = async (orderDetails) => {
+  try {
+    const response = await fetch(`${process.env.GATEWAY_URL}/notify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-internal-api-key': process.env.INTERNAL_API_KEY,
+      },
+      body: JSON.stringify({
+        to: 'syaob@yahoo.fr',
+        subject: 'Nouvelle Commande Créée',
+        text: `Une commande a été créée avec succès pour les produits suivants : \n${orderDetails
+          .map((item) => `Produit ID : ${item.productId}, Quantité : ${item.quantity}`)
+          .join('\n')}`,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Notification refusée : ${response.status}`);
+    }
+  } catch (error) {
+    console.error(`Erreur lors de l'envoi de la notification : ${error.message}`);
+  }
+};
+
 exports.createOrder = async (req, res) => {
   //userLog(`user is ${JSON.stringify(req.user)}`)
   //const { items, shippingAddress, paymentMethod } = req.body;
@@ -69,30 +95,8 @@ exports.createOrder = async (req, res) => {
     const savedOrder = await newOrder.save();
 
 
-    // Appel au micro-service de notification
-    try {
-      const notificationResponse = await fetch(`${process.env.GATEWAY_URL}/notify`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-internal-api-key': process.env.INTERNAL_API_KEY,
-        },
-        body: JSON.stringify({
-          to: 'syaob@yahoo.fr',
-          subject: 'Nouvelle Commande Créée',
-          text: `Une commande a été créée avec succès pour les produits suivants : \n${orderDetails
-            .map((item) => `Produit ID : ${item.productId}, Quantité : ${item.quantity}`)
-            .join('\n')}`,
-        }),
-      });
-      
-      if (!notificationResponse.ok) {
-        throw new Error(`Notification refusée : ${notificationResponse.status}`);
-      }
-
-    } catch (error) {
-      console.error('Erreur lors de l\'envoi de la notification', error);
-    }
+    // La notification ne doit ni bloquer ni faire échouer la commande
+    sendOrderNotification(orderDetails);
 
     // Appel au micro-service de gestion des stocks
     // try {
