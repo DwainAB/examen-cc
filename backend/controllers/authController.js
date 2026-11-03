@@ -6,6 +6,12 @@ const logger = require('../config/logger');
 const audit = require('../config/audit');
 require('dotenv').config();
 
+/**
+ * Connecte un utilisateur et place son JWT dans un cookie HttpOnly.
+ * @param {import('express').Request} req - Requête HTTP.
+ * @param {import('express').Response} res - Réponse HTTP.
+ * @returns {Promise<void>} Répond 200, ou 401 si les identifiants sont incorrects.
+ */
 exports.login = async (req, res) => {
   const { username, password } = req.body;
 
@@ -40,6 +46,12 @@ exports.login = async (req, res) => {
 };
 
 
+/**
+ * Inscrit un utilisateur avec le rôle par défaut.
+ * @param {import('express').Request} req - Requête HTTP.
+ * @param {import('express').Response} res - Réponse HTTP.
+ * @returns {Promise<void>} Répond 201, ou 409 si le nom ou l'email existe déjà.
+ */
 exports.register = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -62,6 +74,11 @@ exports.register = async (req, res) => {
   }
 };
 
+/**
+ * Déconnecte l'utilisateur en supprimant son cookie.
+ * @param {import('express').Request} req - Requête HTTP.
+ * @param {import('express').Response} res - Réponse HTTP.
+ */
 exports.logout = (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
