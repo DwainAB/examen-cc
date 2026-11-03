@@ -5,8 +5,8 @@ const Product = require('../models/Product');
 
 /**
  * Renvoie la liste des produits.
- * @param {import('express').Request} req - Requête HTTP.
- * @param {import('express').Response} res - Réponse HTTP.
+ * @param {Object} req - Requête HTTP.
+ * @param {Object} res - Réponse HTTP.
  * @returns {Promise<void>}
  */
 exports.getProducts = async (req, res) => {
@@ -20,8 +20,8 @@ exports.getProducts = async (req, res) => {
 
 /**
  * Modifie le stock d'un produit (administrateurs).
- * @param {import('express').Request} req - Requête HTTP.
- * @param {import('express').Response} res - Réponse HTTP.
+ * @param {Object} req - Requête HTTP.
+ * @param {Object} res - Réponse HTTP.
  * @returns {Promise<void>} Répond 200, ou 404 si le produit n'existe pas.
  */
 exports.updateProductStock = async (req, res) => {
