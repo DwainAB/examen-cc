@@ -89,43 +89,33 @@ exports.deleteOrder = async(req, res)=>{
     console.log(`orderId to delete is ${orderId}`)
 }
 
-exports.getOrders = async(req, res)=>{
-
-  const orders = await Order.find();
-      res.status(200).json(orders);
- 
-}
+/** Liste toutes les commandes (administrateurs). */
+exports.getOrders = async (req, res) => {
+  try {
+    res.json(await Order.find());
+  } catch (error) {
+    console.error(`Erreur lors de la récupération des commandes : ${error.message}`);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
 
 exports.validateOrder = async (req, res) => {
   const { orderId } = req.body;
   res.status(200).json({message: `Commande ${orderId} validée avec succès.`})
 }
 
+/** Modifie le statut d'une commande (administrateurs). */
 exports.updateOrderStatus = async (req, res) => {
-  const { orderId } = req.params;
-  const { status } = req.body;
-
-  console.log(`dump console log order id => ${orderId} status = ${status}`);
   try {
-    // Vérification des données
-    if (!status) {
-      return res.status(400).json({ message: "Le statut est requis." });
-    }
-
-    // Recherche de la commande et mise à jour
     const order = await Order.findByIdAndUpdate(
-      orderId,
-      { status, updatedAt: new Date() }, // Mise à jour du statut et de la date de modification
-      { new: true } // Retourne la commande mise à jour
+      req.params.orderId,
+      { status: req.body.status },
+      { new: true }
     );
-
-    if (!order) {
-      return res.status(404).json({ message: "Commande non trouvée." });
-    }
-
-    res.status(200).json({ message: "Statut mis à jour avec succès", order });
+    if (!order) return res.status(404).json({ message: 'Commande non trouvée.' });
+    res.json({ message: 'Statut mis à jour avec succès', order });
   } catch (error) {
-    console.error("Erreur lors de la mise à jour de la commande :", error);
-    res.status(500).json({ message: "Erreur serveur." });
+    console.error(`Erreur lors de la mise à jour de la commande : ${error.message}`);
+    res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
