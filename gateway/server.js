@@ -1,7 +1,6 @@
 // gateway/server.js
 const express = require('express');
 const dotenv = require('dotenv');
-//const authProxy = require('./routes/auth');
 const notifiProxy = require('./routes/notifi');
 const stockProxy = require('./routes/stock');
 const requireInternalKey = require('./middlewares/requireInternalKey');
@@ -17,7 +16,6 @@ app.use(requireInternalKey);
 
 
 // Routes principales pour chaque microservice
-//app.use('/auth', authProxy);
 app.use('/notify', notifiProxy);
 app.use('/update-stock', stockProxy);
 

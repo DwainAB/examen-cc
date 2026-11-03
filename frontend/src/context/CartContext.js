@@ -10,10 +10,14 @@ export const cartReducer = (state, action) => {
       );
 
       if (existingProductIndex >= 0) {
-        const updatedCart = [...state.cart];
-        updatedCart[existingProductIndex].quantity +=
-          action.payload.quantity || 1;
-        return { ...state, cart: updatedCart };
+        return {
+          ...state,
+          cart: state.cart.map((item, index) =>
+            index === existingProductIndex
+              ? { ...item, quantity: item.quantity + (action.payload.quantity || 1) }
+              : item
+          ),
+        };
       } else {
         return {
           ...state,

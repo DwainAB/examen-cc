@@ -3,8 +3,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User'); // modèle utilisateur
 require('dotenv').config();
-const axios = require('axios');
-//const sendEmail = require('../services/emailService');
 
 exports.login = async (req, res) => {
   const { username, password } = req.body;
@@ -37,34 +35,19 @@ exports.register = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
-    // Vérifier si l'email ou le nom d'utilisateur existe déjà
-    const existingUser = await User.findOne({ email });
-    
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      return res.status(400).json({ message: 'Cet email est déjà utilisé.' });
+      return res.status(409).json({ message: "Ce nom d'utilisateur ou cet email est déjà utilisé." });
     }
 
-    // Créer un nouvel utilisateur
-    const user = new User({ username, email, password });
-    await user.save();
-
-
-    // Envoyer un email de bienvenue
-    // await sendEmail(
-    //   email,
-    //   'Bienvenue dans notre application',
-    //   `Bonjour ${username},\n\nMerci de vous être inscrit. Nous sommes ravis de vous accueillir !`
-    // );
-
-    // await axios.post('http://localhost:4002/notify', {
-    //   to: email,
-    //   subject: 'Bienvenue dans notre application',
-    //   text: `Bonjour ${username},\n\nMerci de vous être inscrit. Nous sommes ravis de vous accueillir !`,
-    // });
+    await User.create({ username, email, password });
 
     res.status(201).json({ message: 'Utilisateur créé avec succès.' });
   } catch (error) {
-    console.error('Erreur lors de l\'inscription', error);
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Ce nom d'utilisateur ou cet email est déjà utilisé." });
+    }
+    console.error(`Erreur lors de l'inscription : ${error.message}`);
     res.status(500).json({ message: 'Une erreur est survenue.' });
   }
 };

@@ -9,7 +9,6 @@ const Register = () => {
     email: '',
     password: '',
   });
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -38,7 +37,6 @@ const Register = () => {
     <div className="flex justify-center items-center h-screen">
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-80">
         <h2 className="text-2xl font-bold mb-4 text-center">Inscription</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
         <input
           type="text"
           name="username"
