@@ -84,10 +84,17 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-exports.deleteOrder = async(req, res)=>{
-    const { orderId } = req.body;
-    console.log(`orderId to delete is ${orderId}`)
-}
+/** Supprime une commande (administrateurs). */
+exports.deleteOrder = async (req, res) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Commande non trouvée.' });
+    res.json({ message: 'Commande supprimée.' });
+  } catch (error) {
+    console.error(`Erreur lors de la suppression de la commande : ${error.message}`);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
 
 /** Liste toutes les commandes (administrateurs). */
 exports.getOrders = async (req, res) => {
