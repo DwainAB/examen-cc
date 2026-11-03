@@ -55,24 +55,18 @@ const Order = () => {
           quantity: item.quantity,
           price: item.price,
         })),
-        total: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
         shippingAddress,
         paymentMethod,
         shippingMethod,
       };
 
-      const response = await createOrder(orderDetails);
-
-      if (response.error) {
-        alert(`Erreur : ${response.message || "Échec de la commande"}`);
-        return;
-      }
+      await createOrder(orderDetails);
 
       dispatch({ type: "CLEAR_CART" });
       alert("Commande confirmée avec succès !");
+      navigate("/");
     } catch (error) {
-      console.error("Erreur lors de la commande", error);
-      alert("Une erreur technique est survenue. Veuillez réessayer.");
+      alert(error.message);
     }
   };
 
