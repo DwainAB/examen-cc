@@ -3,6 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 require('dotenv').config()
+const requireInternalKey = require('./requireInternalKey');
+
 //console.log(`process evn is ${JSON.stringify(process.env)}`)
 
 const app = express();
@@ -18,7 +20,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Route pour envoyer un email
-app.post('/notify', async (req, res) => {
+app.post('/notify', requireInternalKey, async (req, res) => {
   const { to, subject, text } = req.body;
 
   //const { message } = req.body;

@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 //const authProxy = require('./routes/auth');
 const notifiProxy = require('./routes/notifi');
 const stockProxy = require('./routes/stock');
+const requireInternalKey = require('./middlewares/requireInternalKey');
+
 
 dotenv.config();
 
@@ -11,6 +13,8 @@ const app = express();
 
 // Middleware pour analyser les requêtes JSON
 app.use(express.json());
+app.use(requireInternalKey);
+
 
 // Routes principales pour chaque microservice
 //app.use('/auth', authProxy);
