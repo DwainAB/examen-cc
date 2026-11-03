@@ -28,3 +28,4 @@ data/db/
 # Autre
 .DS_Store
 !.env.compose.example
+backend/docs/

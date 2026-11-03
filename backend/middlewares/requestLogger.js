@@ -1,6 +1,12 @@
 const logger = require('../config/logger');
 
 // Journalise chaque requête, sans paramètres d'URL, corps ni cookies, qui peuvent contenir des données sensibles
+/**
+ * Journalise chaque requête à la fin de son traitement.
+ * @param {Object} req - Requête HTTP.
+ * @param {Object} res - Réponse HTTP.
+ * @param {Function} next - Passe au middleware suivant.
+ */
 module.exports = (req, res, next) => {
   const start = Date.now();
 
