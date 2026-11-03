@@ -1,8 +1,7 @@
 // backend/controllers/orderController.js
-const axios = require('axios');
 const Order = require('../models/Order');
 const orderLog = require('debug')('orderRoutes:console')
-
+const Product = require('../models/Product')
 
 exports.createOrder = async (req, res) => {
   //userLog(`user is ${JSON.stringify(req.user)}`)
@@ -30,17 +29,35 @@ exports.createOrder = async (req, res) => {
   }
 
   try {
-    // Logique pour préparer les détails de la commande
-    const orderDetails = items.map(({ productId, quantity, price }) => {
-      console.log(`Produit ID : ${productId}, Quantité : ${quantity}, Price ${price}`);
-      return { productId, quantity, price };
-    });
+      //Chage les produits commandés depuis la base de données.
+      const productIds = items.map(({ productId }) => productId);
+      const products = await Product.find({ _id: { $in: productIds } });
+      const productsById = new Map(
+        products.map((product) => [product._id.toString(), product])
+      );
 
-    // Création de la commande dans la base de données
-    const total = items.reduce(
-      (acc, { price, quantity }) => acc + price * quantity,
-      0
-    );
+      // Refuse la commande si un produit n'existe pas
+      const unknownItem = items.find(
+        ({ productId }) => !productsById.has(String(productId))
+      );
+      if (unknownItem) {
+        return res.status(400).json({
+          message: `Produit introuvable : ${unknownItem.productId}`,
+        });
+      }
+
+      // Le prix vient de la base, jamais du client
+      const orderDetails = items.map(({ productId, quantity }) => ({
+        productId,
+        quantity,
+        price: productsById.get(String(productId)).price,
+      }));
+
+      // Le total est calculé à partir des prix de la base
+      const total = orderDetails.reduce(
+        (acc, { price, quantity }) => acc + price * quantity,
+        0
+      );
 
     const newOrder = new Order({
       userId,
@@ -58,13 +75,24 @@ exports.createOrder = async (req, res) => {
 
     // Appel au micro-service de notification
     try {
-      await axios.post('http://localhost:8000/notify', {
-        to: 'syaob@yahoo.fr',
-        subject: 'Nouvelle Commande Créée',
-        text: `Une commande a été créée avec succès pour les produits suivants : \n${orderDetails
-          .map((item) => `Produit ID : ${item.productId}, Quantité : ${item.quantity}`)
-          .join('\n')}`,
+      const notificationResponse = await fetch('http://localhost:8000/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: 'syaob@yahoo.fr',
+          subject: 'Nouvelle Commande Créée',
+          text: `Une commande a été créée avec succès pour les produits suivants : \n${orderDetails
+            .map((item) => `Produit ID : ${item.productId}, Quantité : ${item.quantity}`)
+            .join('\n')}`,
+        }),
       });
+      
+      if (!notificationResponse.ok) {
+        throw new Error(`Notification refusée : ${notificationResponse.status}`);
+      }
+
     } catch (error) {
       console.error('Erreur lors de l\'envoi de la notification', error);
     }
