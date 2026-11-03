@@ -51,3 +51,17 @@ test('la sonde de santé signale une base déconnectée', async () => {
   assert.strictEqual(res.status, 503);
   assert.deepStrictEqual(await res.json(), { status: 'degraded', database: false });
 });
+
+test('des identifiants incorrects renvoient 401, et non une erreur serveur', async (t) => {
+  const User = require('../models/User');
+  t.mock.method(User, 'findOne', async () => null);
+  const res = await post('/api/auth/login', '{"username":"inconnu","password":"mauvais-mdp"}');
+  assert.strictEqual(res.status, 401);
+});
+
+test("une inscription avec un nom déjà pris renvoie 409", async (t) => {
+  const User = require('../models/User');
+  t.mock.method(User, 'findOne', async () => ({ _id: 'existant' }));
+  const res = await post('/api/auth/register', '{"username":"pris","email":"p@example.com","password":"motdepasse"}');
+  assert.strictEqual(res.status, 409);
+});
