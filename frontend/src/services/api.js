@@ -10,6 +10,13 @@ export const apiFetch = async (path, options = {}) => {
 
   const data = await response.json().catch(() => null);
 
+  // Session expirée : on nettoie l'affichage et on renvoie vers la connexion
+  if (response.status === 401 && localStorage.getItem('username')) {
+    localStorage.removeItem('username');
+    localStorage.removeItem('role');
+    window.location.assign('/login');
+  }
+
   if (!response.ok) {
     const error = new Error(data?.message || 'Une erreur est survenue.');
     error.status = response.status;
