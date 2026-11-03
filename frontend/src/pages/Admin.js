@@ -18,8 +18,12 @@ const Admin = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setOrders(await getOrders());
-      setProducts(await getProducts());
+      try {
+        setOrders(await getOrders());
+        setProducts(await getProducts());
+      } catch (error) {
+        alert(error.message);
+      }
     };
 
     fetchData();
