@@ -45,3 +45,9 @@ test('un JSON mal formé ne révèle aucun détail technique', async () => {
 test('la liste des commandes exige une connexion', async () => {
   assert.strictEqual((await fetch(`${url}/api/orders`)).status, 401);
 });
+
+test('la sonde de santé signale une base déconnectée', async () => {
+  const res = await fetch(`${url}/api/health`);
+  assert.strictEqual(res.status, 503);
+  assert.deepStrictEqual(await res.json(), { status: 'degraded', database: false });
+});

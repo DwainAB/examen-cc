@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
+const mongoose = require('mongoose');
 const logger = require('./config/logger');
 const requestLogger = require('./middlewares/requestLogger');
 
@@ -19,6 +20,12 @@ app.use(cors({
 
 app.use(express.json());
 app.use(cookieParser());
+// Sonde de supervision : le service répond et la base de données est connectée
+app.get('/api/health', (req, res) => {
+  const database = mongoose.connection.readyState === 1;
+  res.status(database ? 200 : 503).json({ status: database ? 'ok' : 'degraded', database });
+});
+
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
