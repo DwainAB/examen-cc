@@ -10,11 +10,13 @@ const Navbar = () => {
   // Simuler l'état d'authentification avec le localStorage
   const isAuthenticated = !!localStorage.getItem('token');
   const username = localStorage.getItem('username'); // Récupère le nom d'utilisateur si connecté
+  const isAdmin = localStorage.getItem('role') === 'admin'; // Vérifie si l'utilisateur est admin
 
   const handleLogout = () => {
     // Supprimer les informations d'authentification
     localStorage.removeItem('token');
     localStorage.removeItem('username');
+    localStorage.removeItem('role');
     navigate('/login');
   };
 
@@ -31,7 +33,8 @@ const Navbar = () => {
             Bonjour, {username}
           </span>
         )}
-        
+
+        {isAdmin && <Link to="/admin">Administration</Link>}
         {/* Lien vers le Panier avec le nombre d'articles */}
         <Link to="/cart" className="relative">
           <span>Panier</span>
