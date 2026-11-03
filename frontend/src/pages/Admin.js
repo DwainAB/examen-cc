@@ -18,11 +18,8 @@ const Admin = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const ordersResponse = await getOrders();
-      setOrders(ordersResponse.data);
-
-      const productsResponse = await getProducts();
-      setProducts(productsResponse.data);
+      setOrders(await getOrders());
+      setProducts(await getProducts());
     };
 
     fetchData();

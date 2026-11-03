@@ -1,7 +1,7 @@
 // src/pages/Register.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { apiFetch } from '../services/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -22,23 +22,17 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/auth/register', formData);
+      await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+      });
       alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
       navigate('/login');
     } catch (err) {
-      //console.error('Erreur lors de l\'inscription', err);
-      if (err.response) {
-        // Erreur renvoyée par le serveur
-        const { message } = err.response.data;
-        alert(message); // Affiche un message à l'utilisateur (vous pouvez remplacer par un toast)
-      } else {
-        // Erreur réseau ou autre
-        console.error("Erreur réseau ou serveur", err);
-        alert("Une erreur est survenue. Veuillez réessayer.");
-      }
-      //setError('Une erreur est survenue lors de la création du compte.');
+      alert(err.message);
     }
   };
+
 
   return (
     <div className="flex justify-center items-center h-screen">

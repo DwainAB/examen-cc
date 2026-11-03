@@ -1,15 +1,28 @@
 // src/services/api.js
-import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+export const apiFetch = async (path, options = {}) => {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
 
-export const fetchProducts = () => axios.get(`${API_BASE_URL}/products`);
+  const data = await response.json().catch(() => null);
 
-export const createOrder = (orderData) => {
-    const token = localStorage.getItem('token'); // Token de connexion
-    return axios.post(`${API_BASE_URL}/orders`, orderData, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+  if (!response.ok) {
+    const error = new Error(data?.message || 'Une erreur est survenue.');
+    error.status = response.status;
+    throw error;
+  }
+
+  return data;
 };
+
+export const fetchProducts = () => apiFetch('/products');
+
+export const createOrder = (orderData) =>
+  apiFetch('/orders', {
+    method: 'POST',
+    body: JSON.stringify(orderData),
+  });

@@ -3,10 +3,10 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 const AdminRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
+  const username = localStorage.getItem('username');
   const role = localStorage.getItem('role');
 
-  if (!token || role !== 'admin') {
+  if (!username || role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 

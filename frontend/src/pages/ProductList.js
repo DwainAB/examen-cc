@@ -8,7 +8,7 @@ const ProductList = () => {
   const { dispatch } = useCart();
 
   useEffect(() => {
-    fetchProducts().then((response) => setProducts(response.data));
+    fetchProducts().then(setProducts).catch(console.error);
   }, []);
 
   const addToCart = (product) => {

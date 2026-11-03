@@ -1,7 +1,7 @@
 // src/pages/Login.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { apiFetch } from "../services/api";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -13,31 +13,20 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        credentials
-      );
-      const { token, role, username } = response.data;
+      const { role, username } = await apiFetch("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(credentials),
+      });
 
-      // Stockage du token et rôle dans le localStorage
-      localStorage.setItem("token", token);
       localStorage.setItem("username", username);
       localStorage.setItem("role", role);
 
-      navigate("/"); // Redirige vers la page d'accueil après la connexion
+      navigate("/");
     } catch (error) {
-      // Gestion des erreurs
-      if (error.response) {
-        // Erreur renvoyée par le serveur
-        const { message } = error.response.data;
-        alert(message); // Affiche un message à l'utilisateur (vous pouvez remplacer par un toast)
-      } else {
-        // Erreur réseau ou autre
-        console.error("Erreur réseau ou serveur", error);
-        alert("Une erreur est survenue. Veuillez réessayer.");
-      }
+      alert(error.message);
     }
   };
+
 
   return (
     <div className="flex justify-center items-center h-screen">
