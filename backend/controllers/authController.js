@@ -47,7 +47,7 @@ exports.register = async (req, res) => {
     if (error.code === 11000) {
       return res.status(409).json({ message: "Ce nom d'utilisateur ou cet email est déjà utilisé." });
     }
-    console.error(`Erreur lors de l'inscription : ${error.message}`);
+    logger.error("Erreur lors de l'inscription", { error: error.message });
     res.status(500).json({ message: 'Une erreur est survenue.' });
   }
 };

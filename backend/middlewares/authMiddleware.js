@@ -9,8 +9,7 @@ exports.authenticateToken = (req, res, next) => {
   try {
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (err) {
-        console.error('Erreur de vérification du token upd');
-        return res.status(403).json({ error: true, message: 'Token invalide upd' });
+        return res.status(403).json({ error: true, message: 'Token invalide' });
       }
       req.user = user;
       next();

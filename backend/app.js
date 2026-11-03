@@ -4,10 +4,13 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
+const logger = require('./config/logger');
+const requestLogger = require('./middlewares/requestLogger');
 
 const app = express();
 app.set('trust proxy', 2);
 
+app.use(requestLogger);
 app.use(helmet());
 app.use(cors({
   origin: (process.env.CORS_ORIGIN || 'http://localhost:3000').split(','),
@@ -27,7 +30,7 @@ app.use((req, res) => {
 
 // Gestion centralisée des erreurs
 app.use((err, req, res, next) => {
-  console.error(err.message);
+  logger.error('erreur_non_geree', { error: err.message });
   const status = err.status || 500;
   res.status(status).json({
     message: status < 500 ? 'Requête invalide' : 'Erreur serveur',
