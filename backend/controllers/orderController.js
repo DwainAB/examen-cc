@@ -4,6 +4,8 @@ const Product = require('../models/Product');
 
 /** Envoie la notification de commande, sans bloquer ni faire échouer la commande. */
 const sendOrderNotification = async (orderDetails) => {
+  if (!process.env.ORDER_NOTIFICATION_EMAIL) return;
+
   try {
     const response = await fetch(`${process.env.GATEWAY_URL}/notify`, {
       method: 'POST',
@@ -12,7 +14,7 @@ const sendOrderNotification = async (orderDetails) => {
         'x-internal-api-key': process.env.INTERNAL_API_KEY,
       },
       body: JSON.stringify({
-        to: 'syaob@yahoo.fr',
+        to: process.env.ORDER_NOTIFICATION_EMAIL,
         subject: 'Nouvelle Commande Créée',
         text: `Une commande a été créée avec succès pour les produits suivants : \n${orderDetails
           .map((item) => `Produit ID : ${item.productId}, Quantité : ${item.quantity}`)
