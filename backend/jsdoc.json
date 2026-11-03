@@ -1,0 +1,9 @@
+{
+  "source": {
+    "include": ["app.js", "server.js", "config", "controllers", "middlewares", "routes", "validators"]
+  },
+  "opts": {
+    "destination": "docs",
+    "recurse": true
+  }
+}
