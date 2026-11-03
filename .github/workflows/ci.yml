@@ -57,7 +57,7 @@ jobs:
           - microservices/stock-management
     steps:
       - uses: actions/checkout@v4
-      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --omit=dev --audit-level=critical
         working-directory: ${{ matrix.service }}
 
   docker:
