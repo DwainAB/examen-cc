@@ -1,4 +1,6 @@
 // backend/controllers/orderController.js
+const logger = require('../config/logger');
+const audit = require('../config/audit');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 
@@ -27,7 +29,7 @@ const sendOrderNotification = async (orderDetails) => {
       throw new Error(`Notification refusée : ${response.status}`);
     }
   } catch (error) {
-    console.error(`Erreur lors de l'envoi de la notification : ${error.message}`);
+    logger.error("Erreur lors de l'envoi de la notification", { error: error.message });
   }
 };
 
@@ -76,11 +78,12 @@ exports.createOrder = async (req, res) => {
       shippingMethod,
     });
 
+    audit('commande_creee', { userId: req.user.userId, orderId: savedOrder._id.toString(), total });
     sendOrderNotification(orderDetails);
 
     res.status(201).json({ message: 'Commande créée avec succès', order: savedOrder });
   } catch (error) {
-    console.error(`Erreur lors de la création de la commande : ${error.message}`);
+    logger.error("Erreur lors de la création de la commande", { error: error.message });
     await restoreStock(reserved).catch(() => {});
     res.status(500).json({ message: 'Une erreur est survenue lors de la création de la commande.' });
   }
@@ -91,9 +94,10 @@ exports.deleteOrder = async (req, res) => {
   try {
     const order = await Order.findByIdAndDelete(req.params.id);
     if (!order) return res.status(404).json({ message: 'Commande non trouvée.' });
+    audit('commande_supprimee', { adminId: req.user.userId, orderId: req.params.id });
     res.json({ message: 'Commande supprimée.' });
   } catch (error) {
-    console.error(`Erreur lors de la suppression de la commande : ${error.message}`);
+    logger.error("Erreur lors de la suppression de la commande", { error: error.message });
     res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
@@ -103,7 +107,7 @@ exports.getOrders = async (req, res) => {
   try {
     res.json(await Order.find());
   } catch (error) {
-    console.error(`Erreur lors de la récupération des commandes : ${error.message}`);
+    logger.error("Erreur lors de la récupération des commandes", { error: error.message });
     res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
@@ -117,9 +121,10 @@ exports.validateOrder = async (req, res) => {
       { new: true }
     );
     if (!order) return res.status(404).json({ message: 'Commande non trouvée.' });
+    audit('commande_validee', { adminId: req.user.userId, orderId: req.params.id });
     res.json({ message: 'Commande validée avec succès.', order });
   } catch (error) {
-    console.error(`Erreur lors de la validation de la commande : ${error.message}`);
+    logger.error("Erreur lors de la validation de la commande", { error: error.message });
     res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
@@ -133,9 +138,10 @@ exports.updateOrderStatus = async (req, res) => {
       { new: true }
     );
     if (!order) return res.status(404).json({ message: 'Commande non trouvée.' });
+    audit('statut_commande_modifie', { adminId: req.user.userId, orderId: req.params.orderId, status: req.body.status });
     res.json({ message: 'Statut mis à jour avec succès', order });
   } catch (error) {
-    console.error(`Erreur lors de la mise à jour de la commande : ${error.message}`);
+    logger.error("Erreur lors de la mise à jour de la commande", { error: error.message });
     res.status(500).json({ message: 'Erreur serveur.' });
   }
 };

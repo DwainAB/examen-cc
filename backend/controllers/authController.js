@@ -10,10 +10,16 @@ exports.login = async (req, res) => {
 
   try {
     const user = await User.findOne({ username });
-    if (!user) return res.status(401).json({ message: 'Identifiants incorrects' });
+    if (!user) {
+      audit('connexion_echouee', { username, ip: req.ip });
+      return res.status(401).json({ message: 'Identifiants incorrects' });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: 'Identifiants incorrects' });
+    if (!isMatch) {
+      audit('connexion_echouee', { username, ip: req.ip });
+      return res.status(401).json({ message: 'Identifiants incorrects' });
+    }
 
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
@@ -24,6 +30,7 @@ exports.login = async (req, res) => {
       maxAge: 60 * 60 * 1000,
     });
 
+    audit('connexion_reussie', { userId: user._id.toString(), role: user.role, ip: req.ip });
     res.json({ role: user.role, username: user.username });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur' });
@@ -40,14 +47,15 @@ exports.register = async (req, res) => {
       return res.status(409).json({ message: "Ce nom d'utilisateur ou cet email est déjà utilisé." });
     }
 
-    await User.create({ username, email, password });
+    const user = await User.create({ username, email, password });
+    audit('inscription', { userId: user._id.toString() });
 
     res.status(201).json({ message: 'Utilisateur créé avec succès.' });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({ message: "Ce nom d'utilisateur ou cet email est déjà utilisé." });
     }
-    console.error(`Erreur lors de l'inscription : ${error.message}`);
+    logger.error("Erreur lors de l'inscription", { error: error.message });
     res.status(500).json({ message: 'Une erreur est survenue.' });
   }
 };

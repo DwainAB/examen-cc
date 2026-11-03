@@ -4,10 +4,14 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
+const mongoose = require('mongoose');
+const logger = require('./config/logger');
+const requestLogger = require('./middlewares/requestLogger');
 
 const app = express();
 app.set('trust proxy', 2);
 
+app.use(requestLogger);
 app.use(helmet());
 app.use(cors({
   origin: (process.env.CORS_ORIGIN || 'http://localhost:3000').split(','),
@@ -16,6 +20,12 @@ app.use(cors({
 
 app.use(express.json());
 app.use(cookieParser());
+// Sonde de supervision : le service répond et la base de données est connectée
+app.get('/api/health', (req, res) => {
+  const database = mongoose.connection.readyState === 1;
+  res.status(database ? 200 : 503).json({ status: database ? 'ok' : 'degraded', database });
+});
+
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -27,7 +37,7 @@ app.use((req, res) => {
 
 // Gestion centralisée des erreurs
 app.use((err, req, res, next) => {
-  console.error(err.message);
+  logger.error('erreur_non_geree', { error: err.message });
   const status = err.status || 500;
   res.status(status).json({
     message: status < 500 ? 'Requête invalide' : 'Erreur serveur',

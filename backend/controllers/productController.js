@@ -1,11 +1,13 @@
 // controllers/productController.js
+const logger = require('../config/logger');
+const audit = require('../config/audit');
 const Product = require('../models/Product');
 
 exports.getProducts = async (req, res) => {
   try {
     res.json(await Product.find());
   } catch (error) {
-    console.error(`Erreur lors de la récupération des produits : ${error.message}`);
+    logger.error("Erreur lors de la récupération des produits", { error: error.message });
     res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
@@ -29,9 +31,11 @@ exports.updateProductStock = async (req, res) => {
   
       await product.save();
   
+      audit('stock_modifie', { adminId: req.user.userId, productId, stock });
+  
       res.json({ message: "Stock mis à jour avec succès.", product });
     } catch (error) {
-      console.error("Erreur lors de la mise à jour du stock :", error);
+      logger.error('Erreur lors de la mise à jour du stock', { error: error.message });
       res.status(500).json({ message: "Erreur serveur." });
     }
   };
