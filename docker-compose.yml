@@ -1,32 +1,64 @@
-version: '3'
+# Lancement local : docker compose --env-file .env.compose up --build
 services:
   frontend:
     build: ./frontend
+    environment:
+      PORT: 8080
+      BACKEND_URL: http://backend:5000
+      DNS_RESOLVER: 127.0.0.11
     ports:
-      - '3000:3000'
+      - '8080:8080'
     depends_on:
       - backend
 
   backend:
     build: ./backend
-    ports:
-      - '5000:5000'
     environment:
-      - MONGO_URI=mongodb://mongo:27017/mydatabase
+      NODE_ENV: development
+      PORT: 5000
+      MONGO_URI: mongodb://${MONGO_USER:?}:${MONGO_PASSWORD:?}@mongo:27017/exam1Db?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:?}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?}
+      GATEWAY_URL: http://gateway:8000
+      CORS_ORIGIN: http://localhost:8080
+      ORDER_NOTIFICATION_EMAIL: ${ORDER_NOTIFICATION_EMAIL:-}
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
 
-  mongo:
-    image: mongo
-    ports:
-      - '27018:27017'
+  gateway:
+    build: ./gateway
+    environment:
+      GATEWAY_PORT: 8000
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?}
+      NOTIFI_SERVICE_URL: http://notifications:4002
+      STOCK_SERVICE_URL: http://stock:4003
 
   notifications:
     build: ./microservices/notifications
-    ports:
-      - '3001:3001'
+    environment:
+      NOTIFI_PORT: 4002
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?}
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_APPLICATION_PASSWORD: ${EMAIL_APPLICATION_PASSWORD:-}
 
-  stock-management:
+  stock:
     build: ./microservices/stock-management
-    ports:
-      - '3002:3002'
+    environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?}
+
+  mongo:
+    image: mongo:8.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:?}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?}
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  mongo-data:
